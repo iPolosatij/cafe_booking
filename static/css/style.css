@@ -1,12 +1,25 @@
+/* Коричневый */
 :root {
-    --primary-color: #0288d1;      /* Основной глубокий голубой */
-    --secondary-color: #03a9f4;    /* Светло-голубой (акцент) */
-    --accent-color: #4fc3f7;       /* Яркий акцентный голубой */
-    --light-color: #e1f5fe;        /* Очень светлый фон */
-    --text-color: #01579b;         /* Тёмно-голубой для текста */
-    --white: #ffffff;              /* Белый */
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Тень (оставляем как было) */
+    --primary-color: #5d4037;
+    --secondary-color: #8d6e63;
+    --accent-color: #d7ccc8;
+    --light-color: #efebe9;
+    --text-color: #212121;
+    --white: #ffffff;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+/* Голубой
+:root {
+    --primary-color: #0288d1;     
+    --secondary-color: #03a9f4;    
+    --accent-color: #4fc3f7;       
+    --light-color: #e1f5fe;        
+    --text-color: #01579b;         
+    --white: #ffffff;              
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+} 
+*/
 
 * {
     margin: 0;
