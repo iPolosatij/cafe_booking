@@ -79,55 +79,41 @@ func bookHandler(w http.ResponseWriter, r *http.Request) {
 // submitBookingHandler - обработчик отправки формы бронирования
 func submitBookingHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("\n=== НАЧАЛО ОБРАБОТКИ БРОНИРОВАНИЯ ===")
-	defer log.Println("=== ЗАВЕРШЕНИЕ ОБРАБОТКИ БРОНИРОВАНИЯ ===")
+	defer log.Println("=== ЗАВЕРШЕНИО ОБРАБОТКИ БРОНИРОВАНИЯ ===")
 
-	// 1. Логируем входящий запрос
-	log.Printf("Метод: %s, URL: %s", r.Method, r.URL.Path)
-	log.Println("Заголовки:", r.Header)
-
-	// 2. Проверка метода
 	if r.Method != http.MethodPost {
 		log.Println("Ошибка: требуется POST-запрос")
 		http.Error(w, "Метод не разрешен", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// 3. Парсинг формы с логированием
-	log.Println("Парсинг формы...")
 	if err := r.ParseForm(); err != nil {
 		log.Printf("Ошибка парсинга формы: %v", err)
 		http.Error(w, "Ошибка обработки формы", http.StatusBadRequest)
 		return
 	}
-	log.Println("Данные формы:", r.Form)
 
-	// 4. Валидация и логирование полей
 	tableID, err := strconv.Atoi(r.FormValue("table_id"))
 	if err != nil {
-		log.Printf("Ошибка парсинга table_id: %v, значение: %s", err, r.FormValue("table_id"))
+		log.Printf("Ошибка парсинга table_id: %v", err)
 		http.Error(w, "Неверный ID столика", http.StatusBadRequest)
 		return
 	}
-	log.Printf("TableID: %d", tableID)
 
 	guests, err := strconv.Atoi(r.FormValue("guests"))
 	if err != nil {
-		log.Printf("Ошибка парсинга guests: %v, значение: %s", err, r.FormValue("guests"))
+		log.Printf("Ошибка парсинга guests: %v", err)
 		http.Error(w, "Неверное количество гостей", http.StatusBadRequest)
 		return
 	}
-	log.Printf("Guests: %d", guests)
 
 	dateStr := r.FormValue("date")
-	log.Printf("Raw date from form: %s", dateStr)
-
 	parsedDate, err := time.Parse("2006-01-02T15:04", dateStr)
 	if err != nil {
 		log.Printf("Ошибка парсинга даты: %v", err)
-		http.Error(w, "Неверный формат даты. Используйте YYYY-MM-DDTHH:MM", http.StatusBadRequest)
+		http.Error(w, "Неверный формат даты", http.StatusBadRequest)
 		return
 	}
-	log.Printf("Parsed date: %v", parsedDate)
 
 	if parsedDate.Before(time.Now()) {
 		log.Println("Ошибка: дата в прошлом")
@@ -135,8 +121,7 @@ func submitBookingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 5. Проверка доступности столика
-	log.Println("Проверка доступности столика...")
+	// Проверка доступности столика
 	var existingBooking int
 	err = models.DB.Get(&existingBooking,
 		"SELECT COUNT(*) FROM bookings WHERE table_id = $1 AND date = $2",
@@ -154,7 +139,7 @@ func submitBookingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 6. Создание объекта бронирования
+	// Создание и сохранение бронирования
 	booking := &models.Booking{
 		TableID: tableID,
 		Name:    r.FormValue("name"),
@@ -163,15 +148,12 @@ func submitBookingHandler(w http.ResponseWriter, r *http.Request) {
 		Date:    dateStr,
 		Guests:  guests,
 	}
-	log.Printf("Создан объект бронирования: %+v", booking)
 
-	// 7. Сохранение в БД
-	log.Println("Сохранение в БД...")
-	result, err := models.DB.NamedExec(`
-        INSERT INTO bookings 
-        (table_id, name, email, phone, date, guests)
-        VALUES 
-        (:table_id, :name, :email, :phone, :date, :guests)`,
+	_, err = models.DB.NamedExec(`
+		INSERT INTO bookings 
+		(table_id, name, email, phone, date, guests)
+		VALUES 
+		(:table_id, :name, :email, :phone, :date, :guests)`,
 		booking)
 
 	if err != nil {
@@ -180,11 +162,6 @@ func submitBookingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rowsAffected, _ := result.RowsAffected()
-	log.Printf("Успешно сохранено. Затронуто строк: %d", rowsAffected)
-
-	// 8. Перенаправление
-	log.Println("Перенаправление на /bookings")
 	http.Redirect(w, r, "/bookings?success=true", http.StatusSeeOther)
 }
 
@@ -192,7 +169,6 @@ func submitBookingHandler(w http.ResponseWriter, r *http.Request) {
 func bookingsHandler(w http.ResponseWriter, r *http.Request) {
 	success := r.URL.Query().Get("success") == "true"
 
-	// Создаем структуру для хранения данных бронирования с форматированной датой
 	type BookingView struct {
 		models.Booking
 		FormattedDate string
@@ -201,23 +177,20 @@ func bookingsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var bookings []BookingView
 
-	// Получаем данные из БД
 	err := models.DB.Select(&bookings, `
-        SELECT b.*, t.capacity, t.location 
-        FROM bookings b JOIN tables t ON b.table_id = t.id
-        ORDER BY b.date DESC`)
+		SELECT b.*, t.capacity, t.location 
+		FROM bookings b JOIN tables t ON b.table_id = t.id
+		ORDER BY b.date DESC`)
 
 	if err != nil {
 		renderError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Форматируем дату для каждого бронирования
 	for i := range bookings {
 		date, err := time.Parse(time.RFC3339, bookings[i].Date)
 		if err != nil {
-			log.Printf("Ошибка парсинга даты: %v", err)
-			bookings[i].FormattedDate = bookings[i].Date // Оставляем оригинальное значение
+			bookings[i].FormattedDate = bookings[i].Date
 			bookings[i].FormattedTime = ""
 		} else {
 			bookings[i].FormattedDate = date.Format("02.01.2006")
@@ -238,8 +211,7 @@ func bookingsHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "bookings", data)
 }
 
-// Вспомогательные функции
-
+// renderError - вспомогательная функция для отображения ошибок
 func renderError(w http.ResponseWriter, message string, statusCode int) {
 	w.WriteHeader(statusCode)
 	tmpl := template.Must(template.ParseFiles(
@@ -250,49 +222,4 @@ func renderError(w http.ResponseWriter, message string, statusCode int) {
 		"Title":   "Ошибка",
 		"Message": message,
 	})
-}
-
-func parseBookingForm(r *http.Request) (*models.Booking, error) {
-	tableID, err := strconv.Atoi(r.FormValue("table_id"))
-	if err != nil {
-		return nil, fmt.Errorf("Неверный ID столика")
-	}
-
-	guests, err := strconv.Atoi(r.FormValue("guests"))
-	if err != nil {
-		return nil, fmt.Errorf("Неверное количество гостей")
-	}
-
-	date, err := time.Parse("2006-01-02T15:04", r.FormValue("date"))
-	if err != nil {
-		return nil, fmt.Errorf("Неверный формат даты")
-	}
-
-	return &models.Booking{
-		TableID: tableID,
-		Name:    r.FormValue("name"),
-		Email:   r.FormValue("email"),
-		Phone:   r.FormValue("phone"),
-		Date:    date.Format(time.RFC3339),
-		Guests:  guests,
-	}, nil
-}
-
-func isTableBooked(tableID int, date string) bool {
-	var count int
-	err := models.DB.Get(&count, `
-		SELECT COUNT(*) FROM bookings 
-		WHERE table_id = $1 AND date = $2`,
-		tableID, date)
-	return err == nil && count > 0
-}
-
-func saveBooking(booking *models.Booking) error {
-	_, err := models.DB.NamedExec(`
-		INSERT INTO bookings 
-		(table_id, name, email, phone, date, guests)
-		VALUES 
-		(:table_id, :name, :email, :phone, :date, :guests)`,
-		booking)
-	return err
 }
