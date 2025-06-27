@@ -1,0 +1,68 @@
+{{define "content"}}
+<div class="booking-container">
+    <div class="booking-header">
+        <h2>Бронирование столика #{{.Table.ID}}</h2>
+        <div class="table-info">
+            <span class="info-label">Вместимость:</span>
+            <span class="info-value">{{.Table.Capacity}} персон</span>
+            
+            <span class="info-label">Расположение:</span>
+            <span class="info-value">{{.Table.Location}}</span>
+        </div>
+    </div>
+
+    <!-- Исправлено: action="/book/submit" -->
+    <form class="booking-form" action="/book/submit" method="POST">
+        <input type="hidden" name="table_id" value="{{.Table.ID}}">
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="name">Ваше имя</label>
+                <input type="text" id="name" name="name" required class="form-input">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required class="form-input">
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="phone">Телефон</label>
+                <input type="tel" id="phone" name="phone" required class="form-input">
+            </div>
+            
+            <div class="form-group">
+                <label for="guests">Количество гостей</label>
+                <input type="number" id="guests" name="guests" min="1" max="{{.Table.Capacity}}" 
+                       value="1" required class="form-input">
+            </div>
+        </div>
+        
+        <div class="form-group calendar-group">
+            <label for="date">Дата и время</label>
+            <input type="datetime-local" id="date" name="date" required class="form-input calendar-input">
+        </div>
+        
+        <div class="form-actions">
+            <a href="/" class="cancel-btn">Отмена</a>
+            <button type="submit" class="submit-btn">Подтвердить бронирование</button>
+        </div>
+    </form>
+</div>
+
+<!-- Добавьте этот скрипт для отладки -->
+<script>
+document.querySelector('.booking-form').addEventListener('submit', function(e) {
+    console.log('Форма отправляется!', {
+        table_id: this.table_id.value,
+        name: this.name.value,
+        email: this.email.value,
+        phone: this.phone.value,
+        guests: this.guests.value,
+        date: this.date.value
+    });
+});
+</script>
+{{end}}

@@ -1,0 +1,15 @@
+{{define "content"}}
+<section class="section">
+    <h2 class="section-title">Доступные столики</h2>
+    <div class="tables-grid">
+        {{range .Tables}}
+        <div class="table-card">
+            <h3>Столик #{{.ID}}</h3>
+            <p><strong>Вместимость:</strong> {{.Capacity}} персон</p>
+            <p><strong>Расположение:</strong> {{.Location}}</p>
+            <a href="/book?table_id={{.ID}}" class="btn">Забронировать</a>
+        </div>
+        {{end}}
+    </div>
+</section>
+{{end}}

@@ -1,0 +1,61 @@
+{{define "content"}}
+<div class="bookings-container">
+    <h1>{{.Title}}</h1>
+    
+    {{if .Success}}
+    <div class="alert alert-success">
+        Бронирование успешно создано!
+    </div>
+    {{end}}
+
+    {{if .Bookings}}
+    <div class="booking-list">
+        {{range .Bookings}}
+        <div class="booking-card">
+            <div class="booking-header">
+                <h3>Бронирование #{{.ID}}</h3>
+                <div class="booking-status">Подтверждено</div>
+            </div>
+            
+            <div class="booking-details">
+                <div class="detail-row">
+                    <span class="detail-label">Столик:</span>
+                    <span class="detail-value">#{{.TableID}} ({{.Location}})</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Дата:</span>
+                    <span class="detail-value">{{.FormattedDate}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Время:</span>
+                    <span class="detail-value">{{.FormattedTime}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Гостей:</span>
+                    <span class="detail-value">{{.Guests}} (макс. {{.Capacity}})</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Имя:</span>
+                    <span class="detail-value">{{.Name}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Телефон:</span>
+                    <span class="detail-value">{{.Phone}}</span>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </div>
+    {{else}}
+    <div class="empty-state">
+        <p>У вас пока нет бронирований</p>
+        <a href="/" class="btn">Забронировать столик</a>
+    </div>
+    {{end}}
+</div>
+{{end}}

@@ -1,0 +1,33 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кафе "У Гоши" - {{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">Кафе "У Гоши"</h1>
+            <nav class="nav">
+                <a href="/" class="nav-link">Главная</a>
+                <a href="/bookings" class="nav-link">Мои бронирования</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main container">
+        {{template "content" .}}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2023 Кафе "У Гоши". Все права защищены.</p>
+        </div>
+    </footer>
+</body>
+</html>
+{{end}}
